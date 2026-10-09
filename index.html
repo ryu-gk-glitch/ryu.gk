@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GKアナライザー</title>
+<meta name="theme-color" content="#0f5eb0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="GK分析">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{--bg:#eef2f4;--card:#fff;--tx:#10202b;--mu:#62727e;--ln:#d3dce2;--ac:#0b5d7a;--sv:#14915a;--gl:#d8432f;--ot:#7b8791;--cw:#e6f0f2;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d151b;--card:#16222b;--tx:#e6eef2;--mu:#8da0ac;--ln:#294454;--ac:#4cc0e6;--sv:#35c47a;--gl:#f0705c;--ot:#8da0ac;--cw:#1b2c37}}
+:root[data-theme="dark"]{--bg:#0d151b;--card:#16222b;--tx:#e6eef2;--mu:#8da0ac;--ln:#294454;--ac:#4cc0e6;--sv:#35c47a;--gl:#f0705c;--ot:#8da0ac;--cw:#1b2c37}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,"Hiragino Sans","Noto Sans JP",sans-serif;max-width:520px;margin:0 auto;padding:10px 12px 40px}
+h1{font-size:17px;margin:4px 0 8px}h2{font-size:14px;margin:16px 0 6px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+button,input{font:inherit;color:inherit}
+.chip{flex:1;min-width:0;padding:9px 4px;border:1.5px solid var(--ln);background:var(--card);border-radius:8px;cursor:pointer}
+.chip.on{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:700}
+.tabs{display:flex;border-bottom:2px solid var(--ln);margin-bottom:10px}
+.tabs .chip{border:0;border-radius:0;background:none;font-weight:700;color:var(--mu)}
+.tabs .chip.on{background:none;color:var(--ac);box-shadow:inset 0 -3px 0 var(--ac)}
+.card{background:var(--card);border-radius:10px;padding:8px}
+svg{display:block;width:100%;height:auto;touch-action:manipulation}
+.goal{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;border:3px solid var(--tx);border-radius:4px;padding:4px;background:var(--cw)}
+.goal button,.goal div{min-height:54px;border:0;border-radius:4px;background:var(--card);font-size:12px;color:var(--mu);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.goal button.on{background:var(--ac);color:#fff;font-weight:700}
+.res button{flex:1;padding:16px 4px;border:0;border-radius:10px;color:#fff;font-weight:800;font-size:17px;cursor:pointer}
+.sv{background:var(--sv)}.gl{background:var(--gl)}.ot{background:var(--ot)}
+input{width:100%;padding:9px;border:1.5px solid var(--ln);border-radius:8px;background:var(--card)}
+.mu{color:var(--mu);font-size:13px}
+.big{display:flex;gap:8px}.big div{flex:1;background:var(--card);border-radius:10px;padding:8px;text-align:center}
+.big b{display:block;font-size:22px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px 4px;text-align:left;border-bottom:1px solid var(--ln)}
+.wrap{overflow-x:auto}
+.zg{display:grid;grid-template-columns:repeat(30,1fr);grid-template-areas:"LW LW LW LW LW LW PL PL PL PL PL PL PC PC PC PC PC PC PR PR PR PR PR PR RW RW RW RW RW RW" "LI LI LI LI LI LI LI LI LI LI CI CI CI CI CI CI CI CI CI CI RI RI RI RI RI RI RI RI RI RI" "LB LB LB LB LB LB LB LB LB LB CB CB CB CB CB CB CB CB CB CB RB RB RB RB RB RB RB RB RB RB";column-gap:0;row-gap:5px;background:var(--cw);padding:5px;border-radius:8px}.zg.f{grid-template-columns:repeat(3,1fr);grid-template-areas:"FL FC FR"}.zg.s{grid-template-columns:repeat(2,1fr);grid-template-areas:"P7 EM"}.zg button,.zg div{margin:0 2.5px;min-height:58px;border:0;border-radius:6px;background:var(--card);color:var(--mu);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px}.zg button.on{background:var(--ac);color:#fff;font-weight:700}.lt{--bg:#eef2f4;--card:#fff;--tx:#10202b;--mu:#62727e;--ln:#d3dce2;--ac:#0b5d7a;--sv:#14915a;--gl:#d8432f;--ot:#7b8791;--cw:#e6f0f2}#printroot{display:none;color:var(--tx);background:var(--bg)}.ph{display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px}.pn{font-size:18px;font-weight:800;margin:4px 0}
+@media print{@page{size:A4;margin:10mm}body>*:not(#printroot){display:none!important}#printroot{display:block!important}html,body{background:#fff!important;padding:0!important;margin:0!important;max-width:none!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.pg{break-after:page;page-break-after:always;background:var(--bg);padding:6px}.pg:last-child{break-after:auto;page-break-after:auto}.pg [style*="sticky"]{position:static!important}.card,.zg,.goal,tr,.bn,svg{break-inside:avoid}}
+.mt{margin-top:8px}.bn{display:grid;grid-template-columns:44px 1fr 88px;align-items:center;gap:6px;margin:3px 0;font-size:12px}.bb{display:flex;height:22px;border-radius:4px;overflow:hidden;background:var(--cw)}.bb i{display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-style:normal;font-weight:700}.bh{font-weight:700;font-size:12px;margin:8px 0 2px}.lg{display:flex;gap:12px;font-size:11px;margin-bottom:4px}.lg b{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}.row.wr{display:grid;grid-template-columns:repeat(3,1fr)}.wr .chip{flex:none;min-width:0;height:44px;padding:0 2px;white-space:nowrap}.reg{width:100%;margin-top:12px;padding:16px;border:0;border-radius:10px;background:var(--ac);color:#fff;font-weight:800;font-size:17px;cursor:pointer}.res.has button:not(.sel){opacity:.4}.res button.sel{outline:3px solid var(--tx);outline-offset:2px}.rl{display:flex;justify-content:space-between;gap:8px;width:100%;margin-top:4px;padding:9px;border:0;border-radius:6px;background:var(--card);font-size:13px;text-align:left;cursor:pointer}.rl.ed{outline:2px solid var(--ac)}.cur{font-weight:700;margin:2px 0 8px}.link{background:none;border:0;color:var(--mu);text-decoration:underline;cursor:pointer;padding:8px 0}
+</style></head><body>
+<h1>🤾 GKアナライザー</h1>
+<div class="tabs"><button class="chip" id="t0">🏠 ホーム</button><button class="chip" id="t1">入力</button><button class="chip" id="t2">分析</button></div>
+<div id="app"></div>
+<script>
+const $=s=>document.querySelector(s),KEY='gk_data_v1',MK='gk_matches_v1',GL='gk_list_v1';
+const TY={p:'7m',f:'速攻',e:'エンプティ'},CL=['左上','中上','右上','左中','中央','右中','左下','中下','右下'];
+const ZN={LW:'左W',PL:'PV左',PC:'PV中',PR:'PV右',RW:'右W',LB:'左ロング',CB:'中ロング',RB:'右ロング',LI:'左カットイン',CI:'中カットイン',RI:'右カットイン',FL:'速攻左',FC:'速攻中',FR:'速攻右',P7:'7m',EM:'エンプティ'}
+const PL={'1':'前','2':'後','e':'延'};
+const COL={s:'var(--sv)',g:'var(--gl)',o:'var(--ot)'};
+const ZM=['LW','PL','PC','PR','RW','LI','CI','RI','LB','CB','RB'],ZF=['FL','FC','FR'],SM={u:'足上げ',a:'軸移動',l:'ランジ',d:'大の字',s:'スライディング',o:'その他'},ST={s:'スピン',l:'ループ',b:'ブラインド',k:'スカイ',r:'リバウンド',o:'その他'};;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let D=[],M=[],G=[],S={ty:'n',sh:'',z:null,c:null,sm:null,st:null,hd:null,r:null,eid:null,g:null,p:'1',x:1,h:1,tm:0},V='home',cur=null,F='all',FG='all',arm=false;
+let imp=false,impMsg='',ED=null,SZ=null,TG=5,armM=null,selMode=false,selSet=new Set(),armS=false;const mx=()=>S.p=='e'?5:S.p=='t'?0:30;
+try{D=JSON.parse(localStorage.getItem(KEY))||[];M=JSON.parse(localStorage.getItem(MK))||[];G=JSON.parse(localStorage.getItem(GL))||[];S.g=G[0]?G[0].id:null}catch(e){}
+const store=()=>{try{localStorage.setItem(KEY,JSON.stringify(D));localStorage.setItem(MK,JSON.stringify(M));localStorage.setItem(GL,JSON.stringify(G))}catch(e){}};
+const rate=(a,b)=>a+b?Math.round(a/(a+b)*100):null;
+const cnt=(d,r)=>d.filter(x=>x.r==r).length;
+const TB=[];['1','2'].forEach(k=>[0,1,2].forEach(b=>TB.push([k+b,(k=='1'?'前半 ':'後半 ')+['0–9','10–19','20–30'][b]+'分'])));[[1,1],[1,2],[2,1],[2,2]].forEach(([x,h])=>TB.push(['e'+x+h,'第'+x+'延長 '+(h==1?'前半':'後半')]));TB.push(['e00','延長(区分なし)'],['t','7mTC']);
+const tkey=r=>r.p=='e'?'e'+(r.x||0)+(r.h||0):r.p=='t'?'t':r.p?r.p+Math.min(Math.floor((r.tm||0)/10),2):'';
+const plabel=r=>!r.p?'--':r.p=='t'?'7mTC':r.p=='e'?'第'+(r.x||'?')+'延'+(r.h?(r.h==1?'前':'後'):'')+' '+r.tm+'分':(r.p=='1'?'前':'後')+r.tm+'分';
+const mname=()=>{const m=M.find(m=>m.id==cur);return m?m.name:'通算'};
+function zg(fn){return`<div class="zg">${ZM.map(fn).join('')}</div><h2>速攻</h2><div class="zg f">${ZF.map(fn).join('')}</div><h2>特殊</h2><div class="zg s">${fn('P7')}${fn('EM')}</div>`}
+function home(){
+ const rows=M.slice().reverse().map(m=>{const d=D.filter(r=>r.m==m.id),R=rate(cnt(d,'s'),cnt(d,'g'));
+  const head=`<b>${esc(m.name)}</b> <span class="mu">${m.date}</span><div class="mu">${d.length}本 / セーブ率 ${R==null?'–':R+'%'}</div>`;
+  if(selMode)return`<label class="card mt row" style="flex-wrap:nowrap;cursor:pointer"><input type="checkbox" data-sel="${m.id}" ${selSet.has(m.id)?'checked':''} style="width:24px;height:24px;padding:0;flex:none"><div>${head}</div></label>`;
+  return`<div class="card mt">${head}<div class="row mt"><button class="chip" data-go="in" data-id="${m.id}">入力する</button><button class="chip" data-go="st" data-id="${m.id}">分析を見る</button></div><div style="text-align:right"><button class="link" data-dm="${m.id}" style="${armM==m.id?'color:var(--gl)':''}">${armM==m.id?'本当に削除する(この試合の記録も消えます)':'この試合を削除'}</button></div></div>`}).join('');
+ $('#app').innerHTML=`<div class="card"><b>新しい試合を始める</b><div class="row mt"><input id="nm" placeholder="相手チーム名(任意)" style="flex:1"><button class="chip" id="go" style="flex:none;padding:9px 16px;background:var(--ac);color:#fff;border-color:var(--ac);font-weight:700">開始</button></div></div>
+<div class="card mt"><b>キーパー登録</b><div class="row mt">${G.map(k=>`<span class="chip" style="flex:none;padding:6px 10px">🧤 ${esc(k.name)}<button class="link" data-gd="${k.id}" style="padding:0 0 0 8px">×</button></span>`).join('')||'<span class="mu">まだ登録がありません</span>'}</div><div class="row mt"><input id="gn" placeholder="キーパー名" style="flex:1"><button class="chip" id="ga" style="flex:none;padding:9px 16px">追加</button></div></div>
+ <button class="chip mt" id="all" style="width:100%">📊 通算分析(全${M.length}試合 / ${D.length}本)</button>
+ <div class="row" style="justify-content:space-between"><h2 style="margin:16px 0 6px">試合一覧</h2>${M.length?`<button class="link" id="sel">${selMode?'選択をやめる':'選択して削除'}</button>`:''}</div>${rows||'<span class="mu">まだ試合がありません。上から開始してください。</span>'}
+ ${selMode?`<div class="card mt" style="position:sticky;bottom:8px;box-shadow:0 2px 12px #0003"><div class="row"><button class="chip" id="sa">すべて選択</button><button class="chip" id="sd" style="flex:2;color:#fff;background:var(--gl);border-color:var(--gl);font-weight:700"></button></div></div>`:''}
+ <div class="row mt" style="justify-content:space-between"><button class="link" id="cp">データをコピー(JSON)</button><button class="link" id="im">データを読み込む</button><button class="link" id="clr">${arm?'本当に全削除する':'全データ削除'}</button></div>
+ ${imp?`<div class="card mt"><textarea id="it" rows="5" placeholder="コピーしたJSONをここに貼り付け" style="width:100%;border:1.5px solid var(--ln);border-radius:8px;padding:8px;background:var(--card);color:var(--tx);font:inherit"></textarea><button class="chip mt" id="ig" style="width:100%">読み込む(今あるデータに追加)</button></div>`:''}${impMsg?`<div class="mu mt">${impMsg}</div>`:''}`;
+ $('#go').onclick=()=>{const m={id:Date.now(),name:$('#nm').value.trim()||'無題の試合',date:new Date().toLocaleDateString('ja-JP')};M.push(m);store();cur=m.id;S={...S,ty:'n',sh:'',z:null,c:null,sm:null,st:null,hd:null,r:null,eid:null,p:'1',tm:0};show('in')};
+
+ $('#ga').onclick=()=>{const n=$('#gn').value.trim();if(!n)return;const k={id:Date.now(),name:n};G.push(k);if(S.g==null)S.g=k.id;store();home()};
+ document.querySelectorAll('[data-gd]').forEach(b=>b.onclick=()=>{G=G.filter(k=>k.id!=+b.dataset.gd);if(S.g==+b.dataset.gd)S.g=G[0]?G[0].id:null;store();home()});
+ const upd=()=>{const b=$('#sd');if(!b)return;const n=selSet.size;b.textContent=n?(armS?'本当に'+n+'件を削除する':'選択した'+n+'件を削除'):'試合を選んでください';b.style.opacity=n?1:.5};
+ if(selMode){upd();
+  document.querySelectorAll('[data-sel]').forEach(b=>b.onchange=()=>{const id=+b.dataset.sel;b.checked?selSet.add(id):selSet.delete(id);armS=false;upd()});
+  $('#sa').onclick=()=>{selSet=selSet.size==M.length?new Set():new Set(M.map(m=>m.id));armS=false;home()};
+  $('#sd').onclick=()=>{if(!selSet.size)return;if(!armS){armS=true;upd();return}M=M.filter(m=>!selSet.has(m.id));D=D.filter(r=>!selSet.has(r.m));if(selSet.has(cur))cur=null;selSet=new Set();selMode=false;armS=false;store();home()}}
+ if($('#sel'))$('#sel').onclick=()=>{selMode=!selMode;selSet=new Set();armS=false;home()};
+ document.querySelectorAll('[data-dm]').forEach(b=>b.onclick=()=>{const id=+b.dataset.dm;if(armM==id){M=M.filter(m=>m.id!=id);D=D.filter(r=>r.m!=id);if(cur==id)cur=null;armM=null;store()}else armM=id;home()});
+ $('#all').onclick=()=>{cur=null;show('st')};
+ document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{cur=+b.dataset.id;show(b.dataset.go)});
+ $('#cp').onclick=()=>{try{navigator.clipboard.writeText(JSON.stringify({matches:M,shots:D,keepers:G}));$('#cp').textContent='コピーしました'}catch(e){$('#cp').textContent='コピーできませんでした'}};
+ $('#im').onclick=()=>{imp=!imp;impMsg='';home()};
+ if(imp)$('#ig').onclick=()=>{try{const o=JSON.parse($('#it').value),am=(o.matches||[]).filter(m=>!M.some(x=>x.id==m.id)),as=(o.shots||[]).filter(s=>!D.some(x=>x.t==s.t)),ak=(o.keepers||[]).filter(k=>!G.some(x=>x.id==k.id));M.push(...am);D.push(...as);G.push(...ak);D.sort((a,b)=>a.t-b.t);if(S.g==null&&G[0])S.g=G[0].id;store();imp=false;impMsg='試合'+am.length+'件・記録'+as.length+'件・キーパー'+ak.length+'人を読み込みました';home()}catch(e){$('#ig').textContent='読み込めません。コピーしたJSONか確認してください'}};
+ $('#clr').onclick=()=>{if(arm){D=[];M=[];cur=null;store();arm=false}else arm=true;home()}}
+function input(){
+ const d=D.filter(r=>r.m==cur),gn=id=>{const k=G.find(k=>k.id==id);return k?k.name:''};
+ const lst=d.slice().reverse().slice(0,40).map(r=>`<button class="rl ${S.eid==r.t?'ed':''}" data-e="${r.t}" style="border-left:5px solid ${COL[r.r]}"><span>${plabel(r)} ${ZN[r.z]||''}${r.c!=null?' → '+CL[r.c]:''}</span><span>${r.r=='s'?'セーブ':r.r=='g'?'失点':'枠外'}${r.sh?' #'+esc(r.sh):''}${r.g!=null&&gn(r.g)?' 🧤'+esc(gn(r.g)):''}</span></button>`).join('');
+ $('#app').innerHTML=`${chart(d)}<div class="cur mt">vs ${esc(mname())}</div>${G.length?`<div class="row">${G.map(k=>`<button class="chip ${S.g==k.id?'on':''}" data-g="${k.id}">🧤 ${esc(k.name)}</button>`).join('')}</div>`:'<div class="mu">ホームでキーパーを登録すると、キーパーごとに記録できます</div>'}
+<h2>時間</h2><div class="row">${[['1','前半'],['2','後半'],['e','延長'],['t','7mTC']].map(([k,l])=>`<button class="chip ${S.p==k?'on':''}" data-p="${k}">${l}</button>`).join('')}</div>
+ ${S.p=='e'?`<div class="row mt">${[[1,'第1延長'],[2,'第2延長']].map(([k,l])=>`<button class="chip ${S.x==k?'on':''}" data-x="${k}">${l}</button>`).join('')}${[[1,'前半'],[2,'後半']].map(([k,l])=>`<button class="chip ${S.h==k?'on':''}" data-h="${k}">${l}</button>`).join('')}</div>`:''}
+ ${S.p=='t'?'<div class="mu mt">7mTCは時間の入力なしで記録します</div>':`<div class="row mt">${[-5,-1].map(n=>`<button class="chip" data-t="${n}">${n}</button>`).join('')}<b style="flex:1.4;text-align:center;font-size:22px">${S.tm}分</b>${[1,5].map(n=>`<button class="chip" data-t="${n}">+${n}</button>`).join('')}</div>`}
+ <h2>① 相手の背番号(任意)</h2><input id="sh" inputmode="numeric" placeholder="例: 9" value="${esc(S.sh)}">
+ <div class="row mt">${[['r','右利き'],['l','左利き']].map(([k,l])=>`<button class="chip ${S.hd==k?'on':''}" data-hd="${k}">${l}</button>`).join('')}</div>
+ <h2>② シュート位置(上がゴール)</h2>${zg(k=>`<button style="grid-area:${k}" class="${S.z==k?'on':''}" data-z="${k}">${ZN[k]}</button>`)}
+ <h2>③ ゴールのどこに?(GK視点)</h2><div class="goal">${CL.map((c,i)=>`<button class="${S.c===i?'on':''}" data-c="${i}">${c}</button>`).join('')}</div>
+ <h2>シュートの種類</h2><div class="row wr">${Object.entries(ST).map(([k,l])=>`<button class="chip ${S.st==k?'on':''}" data-st="${k}" style="${l.length>5?'font-size:11px':''}">${l}</button>`).join('')}</div>
+ <h2>セーブ方法(セーブしたとき)</h2><div class="row wr">${Object.entries(SM).map(([k,l])=>`<button class="chip ${S.sm==k?'on':''}" data-sm="${k}" style="${l.length>5?'font-size:11px':''}">${l}</button>`).join('')}</div>
+ <h2>④ 結果</h2><div class="row res ${S.r?'has':''}">${[['s','セーブ','sv'],['g','失点','gl'],['o','枠外','ot']].map(([k,l,c])=>`<button class="${c} ${S.r==k?'sel':''}" data-r="${k}">${l}</button>`).join('')}</div>
+ <button class="reg" id="reg">${S.eid?'更新する':'登録'}</button>${S.eid?`<div class="row mt"><button class="chip" id="cx">編集をやめる</button><button class="chip" id="del" style="color:var(--gl)">この記録を削除</button></div>`:''}
+ <div class="row" style="justify-content:space-between"><span class="mu" id="msg">${d.length}本 / セーブ${cnt(d,'s')} 失点${cnt(d,'g')}</span><button class="link" id="undo">1件取り消し</button></div>
+ <h2>入力した記録(タップで編集)</h2>${lst||'<span class="mu">まだ記録がありません</span>'}`;
+
+ $('#sh').oninput=e=>S.sh=e.target.value.trim();
+ document.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{S.g=+b.dataset.g;input()});
+ document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{S.p=b.dataset.p;S.tm=Math.min(S.tm,mx());input()});
+ document.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>{S.x=+b.dataset.x;input()});
+ document.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>{S.h=+b.dataset.h;input()});
+ document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{S.tm=Math.max(0,Math.min(mx(),S.tm+ +b.dataset.t));input()});
+ document.querySelectorAll('[data-ty]').forEach(b=>b.onclick=()=>{S.ty=b.dataset.ty;input()});
+ document.querySelectorAll('[data-sm]').forEach(b=>b.onclick=()=>{S.sm=S.sm==b.dataset.sm?null:b.dataset.sm;input()});
+ document.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{S.st=S.st==b.dataset.st?null:b.dataset.st;input()});
+ document.querySelectorAll('[data-hd]').forEach(b=>b.onclick=()=>{S.hd=S.hd==b.dataset.hd?null:b.dataset.hd;input()});
+ document.querySelectorAll('[data-z]').forEach(b=>b.onclick=()=>{S.z=b.dataset.z;input()});
+ document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{S.c=S.c==+b.dataset.c?null:+b.dataset.c;input()});
+ document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{S.r=S.r==b.dataset.r?null:b.dataset.r;input()});
+ document.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>edit(+b.dataset.e));
+ $('#reg').onclick=rec;
+ if(S.eid){$('#cx').onclick=()=>{S={...S,...ED};clr();input()};$('#del').onclick=()=>{D=D.filter(x=>x.t!=S.eid);store();S={...S,...ED};clr();input()}}
+ $('#undo').onclick=()=>{for(let i=D.length-1;i>=0;i--)if(D[i].m==cur){D.splice(i,1);break}store();input()}}
+function rec(){
+ const r=S.r,z=S.z,m=$('#msg');
+ if(!z){m.textContent='② シュート位置を選んでください';return}
+ if(r!='o'&&S.c==null&&r){m.textContent='③ ゴール内の位置を選んでください';return}
+ if(!r){m.textContent='④ 結果を選んでください';return}
+ const o={g:S.g,p:S.p,x:S.p=='e'?S.x:null,h:S.p=='e'?S.h:null,tm:S.p=='t'?0:S.tm,ty:z=='P7'?'p':z=='EM'?'e':ZF.includes(z)?'f':S.ty,sh:S.sh,z,sm:r=='s'?S.sm:null,st:S.st,hd:S.hd,c:r=='o'?null:S.c,r};
+ if(S.eid){const i=D.findIndex(x=>x.t==S.eid);if(i>=0)D[i]={...D[i],...o};S={...S,...ED}}else D.push({t:Date.now(),m:cur,...o});
+ store();clr();input()}
+function clr(){S={...S,sh:'',z:null,c:null,sm:null,st:null,hd:null,r:null,eid:null}}
+function edit(id){const r=D.find(x=>x.t==id);if(!r)return;if(!S.eid)ED={g:S.g,p:S.p,x:S.x,h:S.h,tm:S.tm,ty:S.ty};
+ S={...S,eid:r.t,g:r.g==null?S.g:r.g,p:r.p||'1',x:r.x||1,h:r.h||1,tm:r.tm||0,ty:r.ty=='b'?'b':'n',sh:r.sh||'',z:r.z,c:r.c==null?null:r.c,sm:r.sm||null,st:r.st||null,hd:r.hd||null,r:r.r};input();window.scrollTo(0,0)}
+function chart(d,note){
+ const n=d.length,xs=i=>n>1?10+i/(n-1)*380:200,Y=p=>82-p*74;
+ let sv=0,gl=0,ot=0,A=[],B=[];
+ d.forEach((r,i)=>{r.r=='s'?sv++:r.r=='g'?gl++:ot++;if(sv+gl)A.push([xs(i),Y(sv/(sv+gl))]);B.push([xs(i),Y((sv+ot)/(i+1))])});
+ const PAL=['#2f80ed','#f2994a','#9b51e0','#27ae60','#eb5757','#00a6a6','#c0a000'];
+ const gi=r=>G.findIndex(k=>k.id==r.g),col=r=>gi(r)<0?'#8a949e':PAL[gi(r)%PAL.length];
+ const nm=r=>{const k=G.find(k=>k.id==r.g);return k?k.name:'未設定'},ky=r=>r.g==null?'-':r.g;
+ const runs=[];d.forEach((r,i)=>{const L=runs[runs.length-1];if(L&&L.k==ky(r))L.b=i;else runs.push({k:ky(r),a:i,b:i,r})});
+ let bands='';runs.forEach(u=>{const l=u.a==0?0:(xs(u.a-1)+xs(u.a))/2,rr=u.b==n-1?400:(xs(u.b)+xs(u.b+1))/2;bands+=`<rect x="${l.toFixed(1)}" y="0" width="${(rr-l).toFixed(1)}" height="90" fill="${col(u.r)}" fill-opacity=".16"/><text x="${(l+3).toFixed(1)}" y="16" font-size="10" font-weight="700" fill="${col(u.r)}">${esc(nm(u.r))}</text>`});
+ const by={},order=[];d.forEach(r=>{const k=ky(r);if(!by[k]){by[k]=[];order.push(k)}by[k].push(r)});
+ const leg=order.map(k=>{const v=by[k],q=rate(cnt(v,'s'),cnt(v,'g'));return`<span style="font-size:12px"><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${col(v[0])};margin-right:4px"></i>${esc(nm(v[0]))} ${v.length}本 ${q==null?'–':q+'%'}</span>`}).join('');
+ const pl=(P,c)=>P.length>1?`<polyline points="${P.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ')}" fill="none" stroke="${c}" stroke-width="2.5" stroke-linejoin="round"/>`:P.length?`<circle cx="${P[0][0]}" cy="${P[0][1]}" r="4" fill="${c}"/>`:'';
+ const q1=rate(sv,gl),q2=n?Math.round((sv+ot)/n*100):null;
+ return`<div style="position:sticky;top:0;z-index:5;background:var(--bg);padding:4px 0 6px"><div class="card" style="padding:6px 8px"><div class="row" style="justify-content:space-between;font-size:13px;font-weight:700"><span style="color:var(--sv)">━ セーブ率 ${q1==null?'–':q1+'%'}</span><span style="color:var(--ac)">━ 阻止率 ${q2==null?'–':q2+'%'}</span><span class="mu">${n}本</span></div>`+(n?`<svg viewBox="0 0 400 100">${bands}<g stroke="var(--ln)" stroke-width="1"><line x1="0" y1="8" x2="400" y2="8"/><line x1="0" y1="45" x2="400" y2="45"/><line x1="0" y1="82" x2="400" y2="82"/></g><g font-size="9" fill="var(--mu)"><text x="398" y="18" text-anchor="end">100%</text><text x="398" y="43" text-anchor="end">50%</text><text x="398" y="80" text-anchor="end">0%</text><text x="4" y="96">1本目</text><text x="340" y="96" text-anchor="end">${n}本目</text></g>${pl(B,'var(--ac)')}${pl(A,'var(--sv)')}</svg><div class="row" style="gap:4px 12px">${leg}</div>`:'<div class="mu mt">記録するとここに1本ごとの推移が出ます</div>')+(note?`<div class="mu" style="font-size:11px">セーブ率=セーブ÷(セーブ+失点) / 阻止率=(セーブ+枠外)÷全シュート。1本ごとの累計。色の帯はキーパーごとの担当範囲です</div>`:'')+`</div></div>`}
+function pdf(){
+ const sZ=SZ,sF=F,sG=FG,scope=cur==null?'通算':'vs '+mname(),sc=D.filter(r=>cur==null||r.m==cur);
+ const head=t=>`<div class="ph"><b>GKアナライザー ${t}</b><span>${esc(scope)} / 出力日 ${new Date().toLocaleDateString('ja-JP')}</span></div>`;
+ const nm=id=>{const k=G.find(k=>k.id==id);return k?k.name:'未設定'},vs=id=>id==null?sc.filter(r=>!G.some(k=>k.id==r.g)):sc.filter(r=>r.g==id);
+ const ids=G.map(k=>k.id).filter(id=>sc.some(r=>r.g==id));if(ids.length&&sc.some(r=>!G.some(k=>k.id==r.g)))ids.push(null);
+ const secs=[];
+ try{
+  F='all';FG='all';SZ=null;stats();secs.push(head('分析レポート(全体)')+$('#app').innerHTML);
+  if(ids.length){
+   const rows=ids.map(id=>{const v=vs(id),s=cnt(v,'s'),g=cnt(v,'g'),o=cnt(v,'o'),q=rate(s,g);return`<tr><td>🧤 ${esc(nm(id))}</td><td>${v.length}</td><td>${s}</td><td>${g}</td><td>${o}</td><td>${q==null?'–':q+'%'}</td><td>${Math.round((s+o)/v.length*100)}%</td></tr>`}).join('');
+   secs.push(head('キーパー別レポート')+`<h2>キーパー比較</h2><div class="card wrap"><table><tr><th>キーパー</th><th>本数</th><th>セーブ</th><th>失点</th><th>枠外</th><th>セーブ率</th><th>阻止率</th></tr>${rows}</table></div>`);
+   for(const id of ids){FG=id;stats();secs.push(head('キーパー別レポート')+`<div class="pn">🧤 ${esc(nm(id))}</div>`+$('#app').innerHTML)}
+  }
+ }finally{F=sF;FG=sG;SZ=sZ;stats()}
+ const old=$('#printroot');if(old)old.remove();
+ const root=document.createElement('div');root.id='printroot';root.className='lt';
+ root.innerHTML=secs.map(h=>`<section class="pg">${h}</section>`).join('');
+ root.querySelectorAll('#pdf').forEach(x=>x.remove());
+ document.body.appendChild(root);
+ const done=()=>{root.remove();window.removeEventListener('afterprint',done)};
+ window.addEventListener('afterprint',done);
+ setTimeout(()=>window.print(),80)}
+function tchart(d){
+ const B=[];
+ for(let i=0;i<12;i++)B.push({l:(i%6*5)+'–'+(i%6*5+5),g:i==0?'前半':i==6?'後半':'',v:[]});
+ d.forEach(r=>{if(r.p=='1'||r.p=='2'){const b=B[(r.p=='2'?6:0)+Math.min(Math.floor((r.tm||0)/5),5)];if(b)b.v.push(r)}});
+ let eg='延長・7mTC';
+ [['e11','延1前'],['e12','延1後'],['e21','延2前'],['e22','延2後'],['e00','延長'],['t','7mTC']].forEach(([k,l])=>{const v=d.filter(r=>tkey(r)==k);if(v.length){B.push({l,g:eg,v});eg=''}});
+ if(!B.some(b=>b.v.length))return'<span class="mu">時間つきの記録がまだありません</span>';
+ const seg=(n,tot,c)=>n?`<i style="width:${n/tot*100}%;background:${c}">${n/tot>=.12?n:''}</i>`:'';
+ return`<div class="lg"><span><b style="background:var(--sv)"></b>セーブ</span><span><b style="background:var(--gl)"></b>失点</span><span><b style="background:var(--ot)"></b>枠外</span></div>`+B.map(b=>{
+  const s=cnt(b.v,'s'),g=cnt(b.v,'g'),o=cnt(b.v,'o'),n=b.v.length,q=rate(s,g);
+  return(b.g?`<div class="bh">${b.g}</div>`:'')+`<div class="bn"><span>${b.l}</span><div class="bb">${seg(s,n,'var(--sv)')}${seg(g,n,'var(--gl)')}${seg(o,n,'var(--ot)')}</div><span>${n?(q==null?'–':q+'%')+' ('+n+'本)':'–'}</span></div>`}).join('')}
+const ZP={LW:[52,104],PL:[140,168],PC:[200,182],PR:[260,168],RW:[348,104],LI:[105,165],CI:[200,224],RI:[295,165],LB:[95,238],CB:[200,268],RB:[305,238],FL:[95,300],FC:[200,312],FR:[305,300],P7:[200,203],EM:[352,262]};
+function lines(d,sz){
+ const gc=c=>[130+(c%3+.5)*140/3,8+(Math.floor(c/3)+.5)*64/3],ge=c=>{const [x,y]=gc(c);return[x,y+6]};
+ const pr={};d.forEach(r=>{if(r.c==null||!ZP[r.z]||(r.r!='s'&&r.r!='g'))return;const k=r.z+'|'+r.c,o=pr[k]||(pr[k]={z:r.z,c:r.c,s:0,g:0});o[r.r]++});
+ let cells='',txts='',ln='',dots='';
+ for(let i=0;i<9;i++){const v=d.filter(r=>r.c===i&&(!sz||r.z==sz)),q=rate(cnt(v,'s'),cnt(v,'g')),[x,y]=gc(i);
+  cells+=`<rect x="${x-70/3}" y="${y-32/3}" width="${140/3}" height="${64/3}" fill="${q==null?'var(--card)':'hsl('+q*1.2+',60%,42%)'}" fill-opacity="${q==null?1:.9}" stroke="var(--tx)" stroke-width="1"/>`;txts+=(q==null?'':`<text x="${x}" y="${y+1}" font-size="9.5" font-weight="700" text-anchor="middle" fill="#fff" stroke="#000" stroke-opacity=".55" stroke-width="2.5" paint-order="stroke">${q}%</text>`)}
+ Object.values(pr).sort((a,b)=>(sz&&a.z==sz?1:0)-(sz&&b.z==sz?1:0)).forEach(o=>{const hl=!sz||o.z==sz,[x1,y1]=ZP[o.z],[x2,y2]=ge(o.c),dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy)||1,nx=-dy/L,ny=dx/L,both=o.s&&o.g;
+  [['s',o.s,'var(--sv)',-1],['g',o.g,'var(--gl)',1]].forEach(([k,n,c,sg])=>{if(!n)return;const off=both?sg*1.8:0;ln+=`<line x1="${(x1+nx*off).toFixed(1)}" y1="${(y1+ny*off).toFixed(1)}" x2="${(x2+nx*off).toFixed(1)}" y2="${(y2+ny*off).toFixed(1)}" stroke="${c}" stroke-width="${(Math.min(1.5+n*.9,7)+(sz&&hl?.8:0)).toFixed(1)}" stroke-opacity="${hl?(sz?.95:.7):.07}" stroke-linecap="round"/><circle cx="${(x2+nx*off).toFixed(1)}" cy="${(y2+ny*off).toFixed(1)}" r="${hl?3:1.5}" fill="${c}" fill-opacity="${hl?(sz?.95:.8):.1}"/>`})});
+ Object.keys(ZP).forEach(k=>{const [x,y]=ZP[k],v=d.filter(r=>r.z==k),n=v.length,q=rate(cnt(v,'s'),cnt(v,'g'));
+  dots+=`<g opacity="${sz&&k!=sz?.3:1}">`+(sz==k?`<circle cx="${x}" cy="${y}" r="13" fill="none" stroke="var(--tx)" stroke-width="2.5"/>`:'')+(n?`<circle cx="${x}" cy="${y}" r="8" fill="${q==null?'var(--ot)':'hsl('+q*1.2+',60%,40%)'}" stroke="#fff" stroke-width="1.5"/><text x="${x}" y="${y+3}" font-size="9" font-weight="700" text-anchor="middle" fill="#fff">${n}</text>`:`<circle cx="${x}" cy="${y}" r="5" fill="var(--ln)"/>`)+`<text x="${x}" y="${y+19}" font-size="8" text-anchor="middle" fill="var(--mu)">${ZN[k]}</text></g><circle cx="${x}" cy="${y}" r="15" fill="transparent" data-sz="${k}" style="cursor:pointer"/>`});
+ return`<svg viewBox="0 0 400 335"><rect x="0" y="0" width="400" height="335" rx="8" fill="var(--cw)"/><line x1="40" y1="90" x2="360" y2="90" stroke="var(--mu)" stroke-width="1.5"/><path d="M104 90A96 96 0 0 0 296 90" fill="none" stroke="var(--ac)" stroke-width="2.5"/><path d="M56 90A144 144 0 0 0 344 90" fill="none" stroke="var(--mu)" stroke-width="1.5" stroke-dasharray="6 5"/><text x="8" y="22" font-size="9" fill="var(--mu)">ゴール(GK視点)</text>${cells}${ln}${txts}${dots}</svg><div class="lg" style="margin-top:4px"><span><b style="background:var(--sv)"></b>セーブ</span><span><b style="background:var(--gl)"></b>失点</span><span>線の太さ=本数 / 丸の数字=本数・色=セーブ率</span></div>`}
+function stats(){
+ const d=D.filter(r=>(cur==null||r.m==cur)&&(F=='all'||r.ty==F)&&(FG=='all'||r.g==FG)),s=cnt(d,'s'),g=cnt(d,'g'),o=d.length-s-g,R=rate(s,g);
+ const heat=(a,b,l,sz)=>{const q=rate(a,b);return q==null?`${l}<br>–`:`<span style="font-size:11px">${l}</span><span style="font-size:${sz}px;font-weight:700">${q}%</span><span style="font-size:11px">${a}/${a+b}</span>`};
+ const hs=(a,b)=>rate(a,b)==null?'':`background:hsl(${rate(a,b)*1.2},60%,38%);color:#fff`;
+ const cells=CL.map((c,i)=>{const a=d.filter(r=>r.c===i&&r.r=='s').length,b=d.filter(r=>r.c===i&&r.r=='g').length;return`<div style="${hs(a,b)}">${heat(a,b,c,17)}</div>`}).join('');
+ const zones=zg(k=>{const a=d.filter(r=>r.z==k&&r.r=='s').length,b=d.filter(r=>r.z==k&&r.r=='g').length;return`<div data-sz="${k}" style="cursor:pointer;grid-area:${k};${hs(a,b)}${SZ==k?';outline:3px solid var(--tx);outline-offset:-3px':''}${SZ&&SZ!=k?';opacity:.45':''}">${heat(a,b,ZN[k],17)}</div>`},1);
+ const trs=TB.map(([k,l])=>{const v=d.filter(r=>tkey(r)==k);if(!v.length)return'';const q=rate(cnt(v,'s'),cnt(v,'g'));return`<tr><td>${l}</td><td>${v.length}</td><td>${q==null?'–':q+'%'}</td></tr>`}).join('');
+ const smr=Object.entries(SM).map(([k,l])=>{const n=d.filter(r=>r.r=='s'&&r.sm==k).length;return n?`<tr><td>${l}</td><td>${n}</td><td>${Math.round(n/s*100)}%</td></tr>`:''}).join('');
+ const grp=(M2,f)=>Object.entries(M2).map(([k,l])=>{const v=d.filter(r=>f(r)==k);if(!v.length)return'';const q=rate(cnt(v,'s'),cnt(v,'g'));return`<tr><td>${l}</td><td>${v.length}</td><td>${q==null?'–':q+'%'}</td></tr>`}).join('');
+ const sts=grp(ST,r=>r.st),hds=grp({r:'右利き',l:'左利き'},r=>r.hd);
+ const szv=SZ?d.filter(r=>r.z==SZ):[],szm={};szv.forEach(r=>{if(r.c!=null)szm[r.c]=(szm[r.c]||0)+1});const szt=Object.entries(szm).sort((a,b)=>b[1]-a[1])[0],szq=rate(cnt(szv,'s'),cnt(szv,'g'));
+ const szinfo=SZ?`<div class="row mt" style="justify-content:space-between"><span style="font-size:13px"><b>${ZN[SZ]}</b>: ${szv.length}本 / セーブ率 ${szq==null?'–':szq+'%'}${szt?' / 多いコース '+CL[szt[0]]+'('+szt[1]+')':''}</span><button class="link" id="szx" style="padding:0">解除</button></div>`:'<div class="mu" style="font-size:11px">ゾーンの丸、または上のゾーン別の枠をタップすると、そのポジションからのシュートが目立ちます</div>';
+ const by={};d.filter(r=>r.sh).forEach(r=>(by[r.sh]=by[r.sh]||[]).push(r));
+ const rows=Object.entries(by).sort((a,b)=>b[1].length-a[1].length).slice(0,10).map(([k,v])=>{
+  const a=cnt(v,'s'),b=cnt(v,'g'),m={},zz={};v.filter(r=>r.r=='g').forEach(r=>{m[r.c]=(m[r.c]||0)+1;zz[r.z]=(zz[r.z]||0)+1});
+  const top=Object.entries(m).sort((x,y)=>y[1]-x[1])[0],tz=Object.entries(zz).sort((x,y)=>y[1]-x[1])[0];
+  return`<tr><td>#${esc(k)}</td><td>${v.length}</td><td>${rate(a,b)==null?'–':rate(a,b)+'%'}</td><td>${tz?ZN[tz[0]]+'→'+CL[top[0]]:'–'}</td></tr>`}).join('');
+ $('#app').innerHTML=`${chart(d,1)}<div class="row mt" style="justify-content:space-between"><div class="cur" style="margin:0">${cur==null?'通算':'vs '+esc(mname())}</div><button class="link" id="pdf" style="padding:0">🖨 PDF保存(印刷)</button></div>${G.length?`<div class="row">${[['all','全員'],...G.map(k=>[k.id,k.name])].map(([k,l])=>`<button class="chip ${FG==k?'on':''}" data-fg="${k}">🧤 ${esc(l)}</button>`).join('')}</div>`:''}
+ <div class="row mt">${[['all','全て'],...Object.entries(TY)].map(([k,l])=>`<button class="chip ${F==k?'on':''}" data-f="${k}">${l}</button>`).join('')}</div>
+ <h2>セーブ率</h2><div class="big"><div><b>${R==null?'–':R+'%'}</b><span class="mu">セーブ率</span></div><div><b>${s}</b><span class="mu">セーブ</span></div><div><b>${g}</b><span class="mu">失点</span></div><div><b>${o}</b><span class="mu">枠外</span></div></div>
+ <h2>シュート位置別セーブ率</h2>${zones}
+ <h2>ゴール内の位置別セーブ率(GK視点)</h2><div class="goal">${cells}</div>
+<h2>シュート位置→コースの線図</h2><div class="card">${lines(d,SZ)}${szinfo}</div>
+ <h2>時間別セーブ率の推移(5分刻み)</h2><div class="card">${tchart(d)}<div class="mu" style="font-size:11px">帯=その時間帯の本数の内訳(数字は本数)。右の%はセーブ率(枠外を除く)</div></div>
+ <h2>時間帯別</h2><div class="card wrap">${trs?`<table><tr><th>時間帯</th><th>本数</th><th>セーブ率</th></tr>${trs}</table>`:'<span class="mu">時間つきの記録がまだありません</span>'}</div>
+ <h2>セーブ方法別</h2><div class="card wrap">${smr?`<table><tr><th>方法</th><th>回数</th><th>セーブ全体に対する割合</th></tr>${smr}</table>`:'<span class="mu">セーブ方法つきの記録がまだありません</span>'}</div>
+ <h2>シュートの種類別</h2><div class="card wrap">${sts?`<table><tr><th>種類</th><th>本数</th><th>セーブ率</th></tr>${sts}</table>`:'<span class="mu">記録がまだありません</span>'}</div>
+ <h2>シューターの利き手別</h2><div class="card wrap">${hds?`<table><tr><th>利き手</th><th>本数</th><th>セーブ率</th></tr>${hds}</table>`:'<span class="mu">記録がまだありません</span>'}</div>
+ <h2>相手選手別(位置→コース)</h2><div class="card wrap">${rows?`<table><tr><th>選手</th><th>本数</th><th>セーブ率</th><th>よく決められる所</th></tr>${rows}</table>`:'<span class="mu">背番号を入力すると、選手ごとの傾向が出ます</span>'}</div>`;
+ document.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{F=b.dataset.f;stats()});
+ if($('#pdf'))$('#pdf').onclick=()=>pdf();
+ document.querySelectorAll('[data-sz]').forEach(b=>b.onclick=()=>{SZ=SZ==b.dataset.sz?null:b.dataset.sz;stats()});
+ if($('#szx'))$('#szx').onclick=()=>{SZ=null;stats()};
+ document.querySelectorAll('[data-fg]').forEach(b=>b.onclick=()=>{FG=b.dataset.fg=='all'?'all':+b.dataset.fg;stats()})}
+function show(v){if(v=='in'&&cur==null)v='home';V=v;arm=false;armM=null;SZ=null;selMode=false;selSet=new Set();armS=false;if(S.eid&&v!='in'){S={...S,...ED,sh:'',z:null,c:null,sm:null,st:null,hd:null,r:null,eid:null}}
+ ['home','in','st'].forEach((k,i)=>$('#t'+i).classList.toggle('on',k==v));
+ $('#t1').style.opacity=cur==null?.4:1;({home,in:input,st:stats})[v]()}
+$('#t0').onclick=()=>show('home');$('#t1').onclick=()=>show('in');$('#t2').onclick=()=>show('st');show('home');
+if('serviceWorker' in navigator&&/^https?:/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script></body></html>
